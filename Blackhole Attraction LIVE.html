@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Blackhole Attraction</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700&display=swap');
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Orbitron', sans-serif; color: white; overflow-x: hidden; background: black; }
+
+    /* Starfield Canvas */
+    canvas#starfield {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      z-index: -5; background: black;
+    }
+
+    /* Audio Controls */
+    .audio-controls {
+      position: fixed; bottom: 20px; right: 20px; z-index: 2000;
+    }
+    #playBtn {
+      background: linear-gradient(45deg, cyan, magenta);
+      border: none; padding: 12px 20px; border-radius: 30px;
+      color: white; font-family: 'Orbitron', sans-serif; font-size: 1rem;
+      cursor: pointer; box-shadow: 0 0 20px rgba(255,0,255,.6);
+      transition: all 0.3s;
+    }
+    #playBtn:hover {
+      transform: scale(1.1); box-shadow: 0 0 40px rgba(0,255,255,.9);
+    }
+
+    /* Hero Section */
+    .hero {
+      position: relative; height: 100vh;
+      display: flex; flex-direction: column; justify-content: center; align-items: center;
+      perspective: 1000px; text-align: center;
+    }
+    .hero-content { transform-style: preserve-3d; transition: transform 0.1s ease-out; }
+    .hero h1 {
+      font-size: 4rem; letter-spacing: 0.25em; text-transform: uppercase;
+      background: linear-gradient(90deg, #00f, #9f00ff, #ff00ff);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      text-shadow: 0px 0px 30px rgba(255, 0, 255, 0.7);
+      animation: pulse 3s infinite alternate; margin-bottom: 30px;
+    }
+    @keyframes pulse { 0% { text-shadow: 0 0 30px #0ff; } 100% { text-shadow: 0 0 60px #ff0ff; } }
+    .hero img { width: 70%; max-width: 1000px; border-radius: 15px; box-shadow: 0 0 40px rgba(0,255,255,.5); }
+
+    /* Gallery */
+    .gallery { padding: 80px 20px; background: rgba(0,0,0,0.9); overflow: hidden; }
+    .gallery h2 {
+      font-size: 2.5rem; margin-bottom: 40px; text-align: center;
+      background: linear-gradient(to right, cyan, magenta);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .gallery-track {
+      display: flex; gap: 30px; animation: scroll 20s linear infinite;
+      width: calc(350px * 10 + 30px * 9);
+    }
+    @keyframes scroll {
+      0% { transform: translateX(0); }
+      100% { transform: translateX(calc(-350px * 5 - 30px * 4)); }
+    }
+    .gallery-track img {
+      flex: 0 0 350px; height: 220px; object-fit: cover; border-radius: 12px;
+      box-shadow: 0 0 25px rgba(0,255,255,0.4); transition: transform 0.4s, box-shadow 0.4s;
+    }
+    .gallery-track img:hover { transform: scale(1.15) rotateY(15deg); box-shadow: 0 0 60px rgba(255,0,255,0.9); }
+
+    /* Lyrics Sections */
+    .lyrics-section {
+      padding: 100px 20px; min-height: 80vh;
+      display: flex; align-items: center; justify-content: space-between;
+      max-width: 1400px; margin: 0 auto; gap: 50px;
+      transition: transform 0.4s ease, box-shadow 0.4s ease;
+      perspective: 1200px;
+    }
+    .lyrics-section:hover { transform: scale(1.01); }
+    .lyrics-section:nth-child(even) { flex-direction: row-reverse; }
+
+    .lyrics-content { flex: 1; max-width: 600px; }
+    .lyrics-content h3 {
+      font-size: 2rem; margin-bottom: 20px;
+      background: linear-gradient(45deg, #0ff, #f0f);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      transition: text-shadow 0.4s;
+    }
+    .lyrics-content p {
+      font-size: 1.1rem; line-height: 1.8; color: #ccc;
+      text-align: left; transition: color 0.4s, text-shadow 0.4s;
+    }
+    .lyrics-content:hover h3, 
+    .lyrics-content:hover p { text-shadow: 0 0 20px magenta, 0 0 40px cyan; color: #fff; }
+
+    .lyrics-image { flex: 1; max-width: 500px; }
+    .lyrics-image img {
+      width: 100%; border-radius: 15px;
+      box-shadow: 0 0 40px rgba(255,0,255,0.5);
+      transition: transform 0.5s ease, box-shadow 0.5s ease;
+      cursor: pointer;
+    }
+    .lyrics-image img:hover {
+      transform: scale(1.05) rotateY(10deg) rotateX(5deg);
+      box-shadow: 0 0 80px rgba(0,255,255,.9);
+    }
+
+    /* Intro/Outro Sections */
+    .intro-section, .outro-section { padding: 100px 20px; text-align: center; max-width: 1000px; margin: 0 auto; }
+    .intro-section h2, .outro-section h2 {
+      font-size: 2.8rem; margin-bottom: 30px;
+      background: linear-gradient(to right, cyan, magenta);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .intro-section p, .outro-section p { font-size: 1.2rem; line-height: 1.8; color: #ddd; }
+
+    /* Footer */
+    footer { background: rgba(0,0,0,0.95); padding: 50px 20px; text-align: center; }
+    footer img {
+      width: 120px; height: 120px;
+      filter: drop-shadow(0px 0px 20px #0ff);
+      transition: all 1s ease;
+    }
+    footer img:hover { transform: rotate(360deg) scale(1.3); }
+    footer p { margin-top: 15px; font-size: 0.9rem; color: #ccc; letter-spacing: 2px; }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .lyrics-section { flex-direction: column !important; text-align: center; }
+      .hero h1 { font-size: 2.5rem; }
+      .audio-controls { bottom: 10px; right: 10px; }
+      #playBtn { padding: 10px 16px; font-size: 0.9rem; }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="starfield"></canvas>
+
+  <!-- AUDIO CONTROLS -->
+  <div class="audio-controls">
+    <button id="playBtn">🔊 Unmute Music</button>
+    <audio id="backgroundMusic" autoplay loop muted>
+      <source src="BlackHole Attraction.m4a" type="audio/m4a">
+      <source src="BlackHole Attraction.m4a" type="audio/mp4">
+      Your browser does not support the audio element.
+    </audio>
+  </div>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-content" id="parallax">
+      <h1>Blackhole Attraction</h1>
+      <img src="https://cdn.abacus.ai/images/d44372a2-c0ba-4513-bb07-db17bda5e126.png" alt="Cinematic Black Hole">
+    </div>
+  </section>
+
+  <!-- AUTOPLAY GALLERY -->
+  <section class="gallery">
+    <h2>Cosmic Gallery</h2>
+    <div class="gallery-track">
+      <img src="https://cdn.abacus.ai/images/d44372a2-c0ba-4513-bb07-db17bda5e126.png" alt="Cinematic BH">
+      <img src="https://cdn.abacus.ai/images/9a26c528-c7aa-4ea3-b246-9ab1134ba767.png" alt="Cyberpunk BH">
+      <img src="https://cdn.abacus.ai/images/3b3fc8a7-4195-4b70-868f-5f3ae0b78b76.png" alt="Minimalist BH">
+      <img src="https://cdn.abacus.ai/images/d44372a2-c0ba-4513-bb07-db17bda5e126.png" alt="Cinematic BH 2">
+      <img src="https://cdn.abacus.ai/images/9a26c528-c7aa-4ea3-b246-9ab1134ba767.png" alt="Cyberpunk BH 2">
+      <img src="https://cdn.abacus.ai/images/3b3fc8a7-4195-4b70-868f-5f3ae0b78b76.png" alt="Minimalist BH 3">
+      <!-- Duplicate for seamless loop -->
+      <img src="https://cdn.abacus.ai/images/d44372a2-c0ba-4513-bb07-db17bda5e126.png" alt="Cinematic BH">
+      <img src="https://cdn.abacus.ai/images/9a26c528-c7aa-4ea3-b246-9ab1134ba767.png" alt="Cyberpunk BH">
+      <img src="https://cdn.abacus.ai/images/3b3fc8a7-4195-4b70-868f-5f3ae0b78b76.png" alt="Minimalist BH">
+      <img src="https://cdn.abacus.ai/images/d44372a2-c0ba-4513-bb07-db17bda5e126.png" alt="Cinematic BH 2">
+    </div>
+  </section>
+
+  <!-- INTRO -->
+  <section class="intro-section">
+    <h2>Enter the Void</h2>
+    <p>Welcome to the cosmic journey of Blackhole Attraction by Squeaky G & DOC911. Experience the gravitational pull of sound as we dive deep into the infinite darkness where matter bends, time warps, and reality itself becomes questionable.</p>
+  </section>
+
+  <!-- VERSE 1 -->
+  <section class="lyrics-section">
+    <div class="lyrics-content">
+      <h3>The Approach</h3>
+      <p>Invisible, indivisible, silence in the distance,<br>
+      Instruments twitchin' from the gravity resistance.<br>
+      Readings fluctuate, navigation in decline,<br>
+      Equations start collapsing, numbers break the line.<br><br>
+      
+      Warp field twisted, the ship starts drifting,<br>
+      Reality shifting, event horizon lifting.<br>
+      Time dilation in the spiral of the void,<br>
+      Every law of physics lookin' null and destroyed.</p>
+    </div>
+    <div class="lyrics-image">
+      <img src="https://cdn.abacus.ai/images/d44372a2-c0ba-4513-bb07-db17bda5e126.png" alt="Cosmic Approach">
+    </div>
+  </section>
+
+  <!-- MIDDLE SECTION -->
+  <section class="intro-section">
+    <h2>The Pull Intensifies</h2>
+    <p>As we venture deeper into the gravitational field, the very fabric of space-time begins to warp around us. The attraction becomes undeniable, the reaction unstoppable.</p>
+  </section>
+
+  <!-- VERSE 2 -->
+  <section class="lyrics-section">
+    <div class="lyrics-content">
+      <h3>The Spiral</h3>
+      <p>Everything swirling, circles erasin',<br>
+      Galaxies vanish in a single rotation.<br>
+      Atoms disconnected, torn at the seams,<br>
+      Evaporatin' whole worlds, suckin' out dreams.<br><br>
+      
+      Where does it go? Maybe teleportation,<br>
+      Alternate dimensions, quantum migration.<br>
+      Still alive maybe, with senses all muted,<br>
+      Conscience rebooted, but body diluted.<br><br>
+      
+      I'm laughin' in the void like a gangster in space,<br>
+      With a Squeaky G grin and a DOC911 face.<br>
+      We bendin' spacetime, never breakin' the code,<br>
+      I spit antimatter bars and they instantly explode!</p>
+    </div>
+    <div class="lyrics-image">
+      <img src="https://cdn.abacus.ai/images/9a26c528-c7aa-4ea3-b246-9ab1134ba767.png" alt="Quantum Spiral">
+    </div>
+  </section>
+
+  <!-- VERSE 3 -->
+  <section class="lyrics-section">
+    <div class="lyrics-content">
+      <h3>The Singularity</h3>
+      <p>What's existence when the atoms all shatter?<br>
+      What's a rapper when his voice climbs ladders?<br>
+      Into nothing, into silence, into endless collapse,<br>
+      Yet my rhymes survive — echo deep in the gaps.<br><br>
+      
+      Non-existence feels vivid, paradox in my chest,<br>
+      A cosmic resurrection where my flow never rests.<br>
+      I spit singularity slang with infinity force,<br>
+      Squeaky G ridin' meteors like they horsepower of course.<br><br>
+      
+      So when the lights bend, and the universe cracks,<br>
+      And your body gets stretched into infinite tracks,<br>
+      You'll hear one last sound when the cosmos goes black —<br>
+      DOC nine-one-one *and I'm never comin' back!*</p>
+    </div>
+    <div class="lyrics-image">
+      <img src="https://cdn.abacus.ai/images/3b3fc8a7-4195-4b70-868f-5f3ae0b78b76.png" alt="The Singularity">
+    </div>
+  </section>
+
+  <!-- OUTRO -->
+  <section class="outro-section">
+    <h2>Beyond the Event Horizon</h2>
+    <p>The journey ends where physics breaks down, where time stops, and where the impossible becomes reality. In the heart of the black hole, only the echoes of cosmic rhymes remain, reverberating through the infinite void.</p>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <img src="https://cdn.abacus.ai/images/3b3fc8a7-4195-4b70-868f-5f3ae0b78b76.png" alt="Blackhole Logo">
+    <p>&copy; 2025 Blackhole Attraction - Squeaky G & DOC911. All Rights Reserved.</p>
+  </footer>
+
+  <!-- JavaScript -->
+  <script>
+    // Starfield Animation
+    const canvas = document.getElementById('starfield');
+    const ctx = canvas.getContext('2d');
+    let stars = [];
+    
+    function resize() { 
+      canvas.width = window.innerWidth; 
+      canvas.height = window.innerHeight; 
+    }
+    window.onresize = resize; 
+    resize();
+    
+    // Create stars
+    for(let i = 0; i < 400; i++) { 
+      stars.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        r: Math.random() * 1.5,
+        s: Math.random() * 0.8 + 0.2
+      }); 
+    }
+    
+    function animateStars() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height); 
+      ctx.fillStyle = "white";
+      for(let s of stars) { 
+        ctx.beginPath(); 
+        ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2); 
+        ctx.fill(); 
+        s.y += s.s; 
+        if(s.y > canvas.height) s.y = 0; 
+      }
+      requestAnimationFrame(animateStars);
+    } 
+    animateStars();
+
+    // Hero Parallax Effect
+    const heroContent = document.getElementById("parallax");
+    document.addEventListener("mousemove", (e) => {
+      let x = (e.clientX / window.innerWidth - 0.5) * 25;
+      let y = (e.clientY / window.innerHeight - 0.5) * -25;
+      heroContent.style.transform = `rotateY(${x}deg) rotateX(${y}deg)`;
+    });
+    document.addEventListener("mouseleave", () => {
+      heroContent.style.transform = "rotateY(0deg) rotateX(0deg)";
+    });
+
+    // Audio Controls
+    const audio = document.getElementById("backgroundMusic");
+    const btn = document.getElementById("playBtn");
+
+    // Autoplay muted (browser-safe)
+    window.addEventListener("load", () => {
+      audio.play().then(() => {
+        console.log("Muted autoplay started successfully.");
+      }).catch(err => {
+        console.log("Autoplay was blocked:", err);
+        btn.textContent = "🎵 Play Music";
+      });
+    });
+
+    // Button controls
+    btn.addEventListener("click", () => {
+      if (audio.muted) {
+        audio.muted = false;
+        btn.textContent = "⏸ Pause Music";
+      } else if (!audio.paused) {
+        audio.pause();
+        btn.textContent = "🎵 Play Music";
+      } else {
+        audio.play();
+        btn.textContent = "⏸ Pause Music";
+      }
+    });
+
+    // Alternative: Click anywhere to unmute
+    document.addEventListener("click", (e) => {
+      if (audio.muted && e.target.id !== 'playBtn') {
+        audio.muted = false;
+        btn.textContent = "⏸ Pause Music";
+      }
+    }, { once: true });
+  </script>
+</body>
+</html>
